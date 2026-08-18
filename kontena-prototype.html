@@ -1,0 +1,650 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kontena — Pack a container, together.</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#E9EDE4;
+    --paper:#F5F6F1;
+    --card:#FFFFFF;
+    --ink:#1B2430;
+    --ink-soft:#5B6672;
+    --ink-faint:#8B93A0;
+    --rust:#C1511B;
+    --rust-dark:#9C3F14;
+    --teal:#1F6F5C;
+    --teal-pale:#E4EEE9;
+    --amber:#D99A1E;
+    --amber-pale:#FBF0D9;
+    --line:rgba(27,36,48,0.13);
+    --line-strong:rgba(27,36,48,0.22);
+    --radius:10px;
+    --shadow:0 1px 2px rgba(27,36,48,0.06), 0 8px 24px -12px rgba(27,36,48,0.18);
+  }
+  *{box-sizing:border-box;}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased;}
+  .mono{font-family:'IBM Plex Mono',monospace;}
+  .display{font-family:'Space Grotesk',sans-serif;}
+
+  /* corrugated texture strip used as signature motif */
+  .corr{
+    background-image:repeating-linear-gradient(90deg, rgba(27,36,48,0.06) 0px, rgba(27,36,48,0.06) 2px, transparent 2px, transparent 9px);
+  }
+
+  /* ===== Shell ===== */
+  .shell{max-width:1180px;margin:0 auto;padding:0 24px 80px;}
+  header.top{
+    position:sticky;top:0;z-index:50;
+    background:var(--ink);color:#fff;
+    border-bottom:4px solid var(--rust);
+  }
+  .top-inner{max-width:1180px;margin:0 auto;padding:14px 24px;display:flex;align-items:center;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .brand{display:flex;align-items:center;gap:11px;}
+  .brand-mark{
+    width:34px;height:26px;border-radius:3px;
+    background:linear-gradient(135deg,var(--rust),var(--rust-dark));
+    position:relative;flex-shrink:0;
+    box-shadow:inset 0 0 0 1px rgba(255,255,255,0.25);
+  }
+  .brand-mark::before{content:"";position:absolute;inset:4px 4px 4px 4px;border:1.5px solid rgba(255,255,255,0.55);border-radius:2px;}
+  .brand-name{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:19px;letter-spacing:0.01em;}
+  .brand-tag{font-size:11px;color:rgba(255,255,255,0.55);margin-top:-2px;font-family:'IBM Plex Mono',monospace;letter-spacing:0.02em;}
+  nav.tabs{display:flex;gap:4px;flex-wrap:wrap;}
+  nav.tabs button{
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;
+    background:transparent;border:none;color:rgba(255,255,255,0.62);
+    padding:9px 14px;border-radius:7px;cursor:pointer;transition:all .15s ease;
+  }
+  nav.tabs button:hover{color:#fff;background:rgba(255,255,255,0.08);}
+  nav.tabs button.active{color:var(--ink);background:#fff;}
+  .cta-mini{
+    background:var(--rust);color:#fff;border:none;padding:9px 16px;border-radius:7px;
+    font-family:'Inter',sans-serif;font-weight:600;font-size:13.5px;cursor:pointer;
+  }
+
+  section.screen{display:none;padding-top:34px;}
+  section.screen.active{display:block;animation:fade .25s ease;}
+  @keyframes fade{from{opacity:0;transform:translateY(4px);}to{opacity:1;transform:translateY(0);}}
+
+  .eyebrow{
+    font-family:'IBM Plex Mono',monospace;font-size:11.5px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--rust-dark);font-weight:600;margin-bottom:8px;display:flex;align-items:center;gap:8px;
+  }
+  .eyebrow::before{content:"";width:16px;height:2px;background:var(--rust);display:inline-block;}
+  h1.page-title{font-family:'Space Grotesk',sans-serif;font-size:32px;font-weight:700;margin:0 0 6px;letter-spacing:-0.01em;}
+  p.page-sub{color:var(--ink-soft);font-size:15px;margin:0 0 28px;max-width:620px;line-height:1.5;}
+
+  /* ===== Filter chips ===== */
+  .chiprow{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:26px;}
+  .chip{
+    font-size:13px;font-weight:500;padding:7px 13px;border-radius:100px;
+    border:1px solid var(--line-strong);background:var(--paper);cursor:pointer;color:var(--ink-soft);
+    transition:all .15s ease;
+  }
+  .chip.active{background:var(--ink);color:#fff;border-color:var(--ink);}
+
+  /* ===== Container gauge (signature element) ===== */
+  .gauge-wrap{margin:14px 0 10px;}
+  .gauge{
+    height:30px;border-radius:5px;background:var(--paper);
+    border:1.5px solid var(--line-strong);
+    display:flex;overflow:hidden;position:relative;
+  }
+  .gauge-seg{height:100%;transition:width .4s ease;}
+  .gauge-empty{background:repeating-linear-gradient(45deg, rgba(27,36,48,0.04) 0 6px, transparent 6px 12px);}
+  .gauge-meta{display:flex;justify-content:space-between;align-items:baseline;margin-top:7px;}
+  .gauge-cbm{font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink-soft);}
+  .gauge-pct{font-family:'IBM Plex Mono',monospace;font-size:12.5px;font-weight:600;}
+
+  /* ===== Cards grid ===== */
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;}
+  .card{
+    background:var(--card);border:1px solid var(--line);border-radius:var(--radius);
+    padding:20px;box-shadow:var(--shadow);
+  }
+  .card-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:2px;}
+  .route{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16.5px;}
+  .route .arrow{color:var(--rust);margin:0 6px;}
+  .code{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--ink-faint);margin-top:3px;}
+  .badge{
+    font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:100px;
+    font-family:'IBM Plex Mono',monospace;letter-spacing:0.03em;
+  }
+  .badge.sealed{background:var(--ink);color:#fff;}
+  .badge.open{background:var(--teal-pale);color:var(--teal);}
+  .badge.closing{background:var(--amber-pale);color:#8a5c0f;}
+  .cat-tags{display:flex;gap:6px;flex-wrap:wrap;margin:12px 0 4px;}
+  .cat-tag{font-size:11.5px;background:var(--paper);border:1px solid var(--line);padding:3px 9px;border-radius:5px;color:var(--ink-soft);}
+  .card-foot{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px dashed var(--line-strong);}
+  .price{font-size:13px;color:var(--ink-soft);}
+  .price b{color:var(--ink);font-family:'IBM Plex Mono',monospace;font-size:14.5px;}
+  .agent-line{font-size:12px;color:var(--ink-faint);margin-top:10px;display:flex;align-items:center;gap:5px;}
+  .verified{color:var(--teal);font-weight:600;}
+  .btn{
+    border:none;border-radius:7px;padding:9px 15px;font-weight:600;font-size:13px;cursor:pointer;
+    font-family:'Inter',sans-serif;
+  }
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-primary:hover{background:#000;}
+  .btn-ghost{background:transparent;border:1px solid var(--line-strong);color:var(--ink);}
+
+  /* ===== Detail screen ===== */
+  .detail-grid{display:grid;grid-template-columns:1.5fr 1fr;gap:24px;align-items:start;}
+  @media (max-width:860px){.detail-grid{grid-template-columns:1fr;}}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);}
+  .panel + .panel{margin-top:16px;}
+  .panel h3{font-family:'Space Grotesk',sans-serif;font-size:15px;margin:0 0 14px;display:flex;align-items:center;gap:8px;}
+  .panel h3 .n{font-family:'IBM Plex Mono',monospace;color:var(--rust);}
+  .big-gauge{height:54px;border-radius:6px;}
+  .manifest-row{
+    display:flex;justify-content:space-between;align-items:center;padding:10px 0;
+    border-bottom:1px solid var(--line);font-size:13.5px;
+  }
+  .manifest-row:last-child{border-bottom:none;}
+  .manifest-id{font-family:'IBM Plex Mono',monospace;color:var(--ink-faint);font-size:12px;width:78px;flex-shrink:0;}
+  .manifest-item{flex:1;color:var(--ink);}
+  .manifest-cbm{font-family:'IBM Plex Mono',monospace;color:var(--ink-soft);font-size:12.5px;}
+  .cost-row{display:flex;justify-content:space-between;padding:8px 0;font-size:13.5px;border-bottom:1px dashed var(--line);}
+  .cost-row.total{border-bottom:none;border-top:1.5px solid var(--ink);margin-top:4px;padding-top:12px;font-weight:700;font-size:15px;}
+  .cost-row span:last-child{font-family:'IBM Plex Mono',monospace;}
+  .note{font-size:12px;color:var(--ink-faint);margin-top:12px;line-height:1.5;}
+  .sticky-cta{position:sticky;top:96px;}
+  .stat-line{display:flex;justify-content:space-between;font-size:13.5px;padding:7px 0;}
+  .stat-line span:first-child{color:var(--ink-soft);}
+  .stat-line span:last-child{font-family:'IBM Plex Mono',monospace;font-weight:600;}
+
+  /* ===== Booking flow ===== */
+  .steps-bar{display:flex;gap:0;margin-bottom:30px;max-width:560px;}
+  .step-pill{
+    flex:1;text-align:center;padding:10px 6px;font-size:12px;font-weight:600;color:var(--ink-faint);
+    border-bottom:3px solid var(--line-strong);font-family:'IBM Plex Mono',monospace;
+  }
+  .step-pill.active{color:var(--rust-dark);border-bottom-color:var(--rust);}
+  .step-pill.done{color:var(--teal);border-bottom-color:var(--teal);}
+  .form-panel{max-width:560px;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:28px;box-shadow:var(--shadow);}
+  .field{margin-bottom:18px;}
+  .field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px;}
+  .field input, .field select, .field textarea{
+    width:100%;padding:10px 12px;border:1.5px solid var(--line-strong);border-radius:6px;
+    font-family:'Inter',sans-serif;font-size:14px;background:var(--paper);color:var(--ink);
+  }
+  .field input:focus, .field select:focus, .field textarea:focus{outline:none;border-color:var(--rust);}
+  .radio-row{display:flex;gap:10px;flex-wrap:wrap;}
+  .radio-opt{
+    border:1.5px solid var(--line-strong);border-radius:7px;padding:9px 13px;font-size:13px;cursor:pointer;
+    color:var(--ink-soft);
+  }
+  .radio-opt.sel{border-color:var(--rust);color:var(--rust-dark);background:#FBEEE7;font-weight:600;}
+  .step-nav{display:flex;justify-content:space-between;margin-top:24px;}
+  .estimate-box{background:var(--paper);border-radius:7px;padding:16px;margin-top:6px;}
+  .confirm-box{text-align:center;padding:20px 0;}
+  .confirm-ref{font-family:'IBM Plex Mono',monospace;font-size:20px;font-weight:600;background:var(--paper);
+    display:inline-block;padding:10px 20px;border-radius:7px;margin:14px 0;border:1px dashed var(--line-strong);}
+
+  /* ===== Tracking ===== */
+  .order-card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:24px;box-shadow:var(--shadow);margin-bottom:20px;}
+  .order-head{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:20px;}
+  .order-title{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:16px;}
+  .order-code{font-family:'IBM Plex Mono',monospace;font-size:11.5px;color:var(--ink-faint);}
+  .stepper{display:flex;align-items:flex-start;overflow-x:auto;padding-bottom:6px;gap:0;}
+  .stp{display:flex;flex-direction:column;align-items:center;min-width:104px;position:relative;}
+  .stp .dot{width:15px;height:15px;border-radius:50%;background:var(--line-strong);border:2px solid var(--card);box-shadow:0 0 0 2px var(--line-strong);z-index:2;}
+  .stp.done .dot{background:var(--teal);box-shadow:0 0 0 2px var(--teal);}
+  .stp.current .dot{background:var(--rust);box-shadow:0 0 0 4px #FBEEE7;}
+  .stp .bar{position:absolute;top:6.5px;left:50%;width:100%;height:2px;background:var(--line-strong);z-index:1;}
+  .stp.done .bar, .stp.current .bar{background:var(--teal);}
+  .stp:first-child .bar{display:none;}
+  .stp .lbl{font-size:11px;text-align:center;color:var(--ink-faint);margin-top:9px;line-height:1.3;max-width:96px;}
+  .stp.done .lbl, .stp.current .lbl{color:var(--ink);font-weight:600;}
+  .order-body{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-top:24px;padding-top:18px;border-top:1px solid var(--line);}
+  @media (max-width:700px){.order-body{grid-template-columns:repeat(2,1fr);}}
+  .ob-item .k{font-size:11px;color:var(--ink-faint);text-transform:uppercase;letter-spacing:0.04em;margin-bottom:4px;}
+  .ob-item .v{font-family:'IBM Plex Mono',monospace;font-size:14px;font-weight:600;}
+
+  /* ===== How it works ===== */
+  .flow-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:2px;background:var(--line-strong);border:1px solid var(--line-strong);border-radius:var(--radius);overflow:hidden;margin-bottom:36px;}
+  @media (max-width:860px){.flow-grid{grid-template-columns:repeat(2,1fr);}}
+  .flow-cell{background:var(--card);padding:20px;}
+  .flow-cell .num{font-family:'IBM Plex Mono',monospace;color:var(--rust);font-size:12px;font-weight:600;margin-bottom:8px;}
+  .flow-cell h4{font-family:'Space Grotesk',sans-serif;font-size:14.5px;margin:0 0 6px;}
+  .flow-cell p{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin:0;}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-inner">
+    <div class="brand">
+      <div class="brand-mark"></div>
+      <div>
+        <div class="brand-name">KONTENA</div>
+        <div class="brand-tag">pack a container, together.</div>
+      </div>
+    </div>
+    <nav class="tabs" id="tabnav">
+      <button data-screen="market" class="active">Browse containers</button>
+      <button data-screen="detail">Manifest</button>
+      <button data-screen="book">Book space</button>
+      <button data-screen="track">My orders</button>
+      <button data-screen="how">How it works</button>
+    </nav>
+    <button class="cta-mini">Become a sourcing agent</button>
+  </div>
+</header>
+
+<div class="shell">
+
+  <!-- ============ SCREEN 1: MARKETPLACE ============ -->
+  <section class="screen active" id="market">
+    <div class="eyebrow">Open manifests — Nairobi</div>
+    <h1 class="page-title">Containers filling up this week</h1>
+    <p class="page-sub">Every container is booked by cubic metre (CBM). Reserve only the space you need, track it fill up in real time, and pay your balance once your goods clear customs.</p>
+
+    <div class="chiprow">
+      <div class="chip active">All routes</div>
+      <div class="chip">Guangzhou → Mombasa</div>
+      <div class="chip">Yiwu → Mombasa</div>
+      <div class="chip">Electronics</div>
+      <div class="chip">Fashion &amp; Beauty</div>
+      <div class="chip">Hardware</div>
+      <div class="chip">Closing soon</div>
+    </div>
+
+    <div class="grid">
+
+      <div class="card" onclick="showScreen('detail')" style="cursor:pointer">
+        <div class="card-top">
+          <div>
+            <div class="route">Guangzhou <span class="arrow">→</span> Mombasa</div>
+            <div class="code">KTN-2026-0847</div>
+          </div>
+          <span class="badge open">4 DAYS LEFT</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge corr">
+            <div class="gauge-seg" style="width:22%;background:var(--rust);"></div>
+            <div class="gauge-seg" style="width:16%;background:var(--amber);"></div>
+            <div class="gauge-seg" style="width:14%;background:var(--teal);"></div>
+            <div class="gauge-seg gauge-empty" style="width:48%;"></div>
+          </div>
+          <div class="gauge-meta">
+            <span class="gauge-cbm">6.2 / 12.0 CBM booked</span>
+            <span class="gauge-pct">52%</span>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Electronics</span>
+          <span class="cat-tag">Home &amp; Kitchen</span>
+        </div>
+        <div class="agent-line">Sourcing agent: <b>&nbsp;Wanjiru Sourcing Co.</b> <span class="verified">✔ verified</span></div>
+        <div class="card-foot">
+          <div class="price">from <b>KES 8,500</b> /CBM</div>
+          <button class="btn btn-primary">View manifest</button>
+        </div>
+      </div>
+
+      <div class="card" style="cursor:pointer">
+        <div class="card-top">
+          <div>
+            <div class="route">Yiwu <span class="arrow">→</span> Mombasa</div>
+            <div class="code">KTN-2026-0851</div>
+          </div>
+          <span class="badge closing">CLOSES TOMORROW</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge corr">
+            <div class="gauge-seg" style="width:30%;background:var(--rust);"></div>
+            <div class="gauge-seg" style="width:28%;background:var(--amber);"></div>
+            <div class="gauge-seg" style="width:24%;background:var(--teal);"></div>
+            <div class="gauge-seg gauge-empty" style="width:18%;"></div>
+          </div>
+          <div class="gauge-meta">
+            <span class="gauge-cbm">9.8 / 12.0 CBM booked</span>
+            <span class="gauge-pct">82%</span>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Fashion</span>
+          <span class="cat-tag">Beauty</span>
+        </div>
+        <div class="agent-line">Sourcing agent: <b>&nbsp;Dragon Gate Logistics</b> <span class="verified">✔ verified</span></div>
+        <div class="card-foot">
+          <div class="price">from <b>KES 9,200</b> /CBM</div>
+          <button class="btn btn-primary">View manifest</button>
+        </div>
+      </div>
+
+      <div class="card" style="cursor:pointer">
+        <div class="card-top">
+          <div>
+            <div class="route">Guangzhou <span class="arrow">→</span> Mombasa</div>
+            <div class="code">KTN-2026-0855</div>
+          </div>
+          <span class="badge open">9 DAYS LEFT</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge corr">
+            <div class="gauge-seg" style="width:9%;background:var(--rust);"></div>
+            <div class="gauge-seg" style="width:9%;background:var(--teal);"></div>
+            <div class="gauge-seg gauge-empty" style="width:82%;"></div>
+          </div>
+          <div class="gauge-meta">
+            <span class="gauge-cbm">2.1 / 12.0 CBM booked</span>
+            <span class="gauge-pct">18%</span>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Hardware</span>
+          <span class="cat-tag">Electronics</span>
+        </div>
+        <div class="agent-line">Sourcing agent: <b>&nbsp;Wanjiru Sourcing Co.</b> <span class="verified">✔ verified</span></div>
+        <div class="card-foot">
+          <div class="price">from <b>KES 8,200</b> /CBM</div>
+          <button class="btn btn-primary">View manifest</button>
+        </div>
+      </div>
+
+      <div class="card" style="opacity:0.75;">
+        <div class="card-top">
+          <div>
+            <div class="route">Yiwu <span class="arrow">→</span> Mombasa</div>
+            <div class="code">KTN-2026-0842</div>
+          </div>
+          <span class="badge sealed">SEALED · AT SEA</span>
+        </div>
+        <div class="gauge-wrap">
+          <div class="gauge corr">
+            <div class="gauge-seg" style="width:100%;background:var(--ink);"></div>
+          </div>
+          <div class="gauge-meta">
+            <span class="gauge-cbm">12.0 / 12.0 CBM booked</span>
+            <span class="gauge-pct">100%</span>
+          </div>
+        </div>
+        <div class="cat-tags">
+          <span class="cat-tag">Mixed cargo</span>
+        </div>
+        <div class="agent-line">Departed Yiwu · ETA Mombasa in 11 days</div>
+        <div class="card-foot">
+          <div class="price">Booking closed</div>
+          <button class="btn btn-ghost" onclick="showScreen('track')">Track it</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SCREEN 2: MANIFEST / DETAIL ============ -->
+  <section class="screen" id="detail">
+    <div class="eyebrow">Container KTN-2026-0847</div>
+    <h1 class="page-title">Guangzhou → Mombasa</h1>
+    <p class="page-sub">Closes in 4 days, or sooner if fully booked. 20ft container · 12.0 CBM total capacity · sails via Guangzhou Nansha port.</p>
+
+    <div class="detail-grid">
+      <div>
+        <div class="panel">
+          <h3>Space filled — <span class="n">6.2 / 12.0 CBM</span></h3>
+          <div class="gauge big-gauge corr">
+            <div class="gauge-seg" style="width:22%;background:var(--rust);"></div>
+            <div class="gauge-seg" style="width:16%;background:var(--amber);"></div>
+            <div class="gauge-seg" style="width:14%;background:var(--teal);"></div>
+            <div class="gauge-seg gauge-empty" style="width:48%;"></div>
+          </div>
+          <div class="gauge-meta">
+            <span class="gauge-cbm">14 traders booked in so far</span>
+            <span class="gauge-pct" style="color:var(--rust-dark)">52% full</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h3>Manifest so far <span class="n">(anonymised)</span></h3>
+          <div class="manifest-row"><span class="manifest-id">TRD-014</span><span class="manifest-item">Phone accessories &amp; cases</span><span class="manifest-cbm">0.4 CBM</span></div>
+          <div class="manifest-row"><span class="manifest-id">TRD-022</span><span class="manifest-item">Stainless kitchenware set</span><span class="manifest-cbm">0.6 CBM</span></div>
+          <div class="manifest-row"><span class="manifest-id">TRD-009</span><span class="manifest-item">LED strip lighting</span><span class="manifest-cbm">0.3 CBM</span></div>
+          <div class="manifest-row"><span class="manifest-id">TRD-031</span><span class="manifest-item">Bluetooth speakers</span><span class="manifest-cbm">0.5 CBM</span></div>
+          <div class="manifest-row"><span class="manifest-id">TRD-017</span><span class="manifest-item">Kids' shoes, assorted</span><span class="manifest-cbm">0.7 CBM</span></div>
+          <div class="manifest-row"><span class="manifest-id">+9 more</span><span class="manifest-item">Electronics, home goods, hardware</span><span class="manifest-cbm">3.7 CBM</span></div>
+        </div>
+      </div>
+
+      <div class="sticky-cta">
+        <div class="panel">
+          <h3>Landed cost estimate <span class="n">· per 0.5 CBM</span></h3>
+          <div class="cost-row"><span>Product cost (paid to supplier)</span><span>~45,000</span></div>
+          <div class="cost-row"><span>Freight share (0.5 × 8,500)</span><span>4,250</span></div>
+          <div class="cost-row"><span>Customs duty &amp; VAT (est.)</span><span>6,000</span></div>
+          <div class="cost-row"><span>Agent handling &amp; consolidation</span><span>1,500</span></div>
+          <div class="cost-row"><span>Kontena platform fee</span><span>500</span></div>
+          <div class="cost-row total"><span>Estimated total, KES</span><span>57,250</span></div>
+          <div class="note">Duty is confirmed by KRA at clearance based on HS code and invoice value — this is an estimate to help you budget, not a final figure.</div>
+        </div>
+
+        <div class="panel">
+          <h3>Sourcing agent</h3>
+          <div class="stat-line"><span>Name</span><span>Wanjiru Sourcing Co.</span></div>
+          <div class="stat-line"><span>Verification</span><span style="color:var(--teal)">✔ Verified</span></div>
+          <div class="stat-line"><span>Containers run</span><span>38</span></div>
+          <div class="stat-line"><span>On-time rate</span><span>94%</span></div>
+          <button class="btn btn-primary" style="width:100%;margin-top:16px;padding:12px;font-size:14px;" onclick="showScreen('book')">Reserve my space</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN 3: BOOK SPACE ============ -->
+  <section class="screen" id="book">
+    <div class="eyebrow">Booking · KTN-2026-0847</div>
+    <h1 class="page-title">Reserve your space</h1>
+    <p class="page-sub">Four short steps. You only pay a deposit now — the balance is due once your goods are QC'd and the container is sealed.</p>
+
+    <div class="steps-bar" id="stepsbar">
+      <div class="step-pill active" data-step="1">01 · ITEM</div>
+      <div class="step-pill" data-step="2">02 · SPACE &amp; COST</div>
+      <div class="step-pill" data-step="3">03 · PAYMENT</div>
+      <div class="step-pill" data-step="4">04 · DONE</div>
+    </div>
+
+    <div class="form-panel">
+
+      <div class="stepview" data-view="1">
+        <div class="field">
+          <label>What are you importing?</label>
+          <div class="radio-row">
+            <div class="radio-opt sel">Electronics</div>
+            <div class="radio-opt">Fashion</div>
+            <div class="radio-opt">Home &amp; Kitchen</div>
+            <div class="radio-opt">Beauty</div>
+            <div class="radio-opt">Hardware</div>
+          </div>
+        </div>
+        <div class="field">
+          <label>Supplier link (1688, Alibaba, or similar)</label>
+          <input type="text" placeholder="https://detail.1688.com/offer/...">
+        </div>
+        <div class="field">
+          <label>Quantity</label>
+          <input type="text" placeholder="e.g. 40 units">
+        </div>
+        <div class="field">
+          <label>Not sure of your space needs?</label>
+          <div class="radio-row">
+            <div class="radio-opt sel">Let the agent estimate CBM for me</div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <span></span>
+          <button class="btn btn-primary" onclick="goStep(2)">Continue</button>
+        </div>
+      </div>
+
+      <div class="stepview" data-view="2" style="display:none">
+        <div class="field">
+          <label>Estimated space required</label>
+          <div class="estimate-box">
+            <div class="stat-line"><span>Bluetooth speakers × 40</span><span>0.5 CBM</span></div>
+            <div class="stat-line"><span>Freight (0.5 × 8,500)</span><span>KES 4,250</span></div>
+            <div class="stat-line"><span>Customs, duty &amp; fees (est.)</span><span>KES 8,000</span></div>
+            <div class="stat-line" style="border-top:1px dashed var(--line-strong);padding-top:10px;margin-top:4px;"><span><b>Total estimate</b></span><span><b>KES 57,250</b></span></div>
+          </div>
+        </div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" onclick="goStep(1)">Back</button>
+          <button class="btn btn-primary" onclick="goStep(3)">Continue to payment</button>
+        </div>
+      </div>
+
+      <div class="stepview" data-view="3" style="display:none">
+        <div class="field">
+          <label>Deposit due now (40% of estimate)</label>
+          <input type="text" value="KES 22,900" disabled style="color:var(--ink);font-family:'IBM Plex Mono',monospace;font-weight:600;">
+        </div>
+        <div class="field">
+          <label>M-Pesa phone number</label>
+          <input type="text" placeholder="07XX XXX XXX">
+        </div>
+        <div class="note" style="margin-bottom:16px;">Your deposit is held until the container is confirmed. If it doesn't reach 80% capacity by the closing date, you're refunded in full.</div>
+        <div class="step-nav">
+          <button class="btn btn-ghost" onclick="goStep(2)">Back</button>
+          <button class="btn btn-primary" onclick="goStep(4)">Send M-Pesa prompt</button>
+        </div>
+      </div>
+
+      <div class="stepview" data-view="4" style="display:none">
+        <div class="confirm-box">
+          <div style="color:var(--teal);font-size:34px;">✔</div>
+          <div class="display" style="font-weight:700;font-size:18px;margin-top:8px;">Space reserved</div>
+          <div class="confirm-ref">KTN-0847-B231</div>
+          <p style="color:var(--ink-soft);font-size:13.5px;max-width:380px;margin:0 auto;">We've notified Wanjiru Sourcing Co. to begin sourcing and QC on your items. You'll get an SMS at each stage — sourcing, loading, departure, and customs clearance.</p>
+          <button class="btn btn-primary" style="margin-top:20px;" onclick="showScreen('track')">Track this order</button>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ SCREEN 4: TRACKING ============ -->
+  <section class="screen" id="track">
+    <div class="eyebrow">Your orders</div>
+    <h1 class="page-title">Track your shipment</h1>
+    <p class="page-sub">Every booking moves through the same nine checkpoints, from sourcing in China to pickup in Nairobi.</p>
+
+    <div class="order-card">
+      <div class="order-head">
+        <div>
+          <div class="order-title">Bluetooth speakers × 40</div>
+          <div class="order-code">Booking KTN-0847-B231 · Container KTN-2026-0847</div>
+        </div>
+        <span class="badge closing">CONTAINER SEALING</span>
+      </div>
+
+      <div class="stepper">
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Booked</div></div>
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Deposit paid</div></div>
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Sourced &amp; QC'd</div></div>
+        <div class="stp current"><div class="bar"></div><div class="dot"></div><div class="lbl">Container sealed</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">At sea</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Mombasa port</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Customs clearance</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Nairobi warehouse</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Ready for pickup</div></div>
+      </div>
+
+      <div class="order-body">
+        <div class="ob-item"><div class="k">CBM booked</div><div class="v">0.5</div></div>
+        <div class="ob-item"><div class="k">Paid so far</div><div class="v">KES 22,900</div></div>
+        <div class="ob-item"><div class="k">Balance due</div><div class="v">KES 34,350</div></div>
+        <div class="ob-item"><div class="k">ETA Nairobi</div><div class="v">18 Oct</div></div>
+      </div>
+    </div>
+
+    <div class="order-card" style="opacity:0.7;">
+      <div class="order-head">
+        <div>
+          <div class="order-title">Mixed cargo — assorted</div>
+          <div class="order-code">Booking KTN-0842-B118 · Container KTN-2026-0842</div>
+        </div>
+        <span class="badge sealed">AT SEA</span>
+      </div>
+      <div class="stepper">
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Booked</div></div>
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Deposit paid</div></div>
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Sourced &amp; QC'd</div></div>
+        <div class="stp done"><div class="bar"></div><div class="dot"></div><div class="lbl">Container sealed</div></div>
+        <div class="stp current"><div class="bar"></div><div class="dot"></div><div class="lbl">At sea</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Mombasa port</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Customs clearance</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Nairobi warehouse</div></div>
+        <div class="stp"><div class="bar"></div><div class="dot"></div><div class="lbl">Ready for pickup</div></div>
+      </div>
+      <div class="order-body">
+        <div class="ob-item"><div class="k">CBM booked</div><div class="v">0.9</div></div>
+        <div class="ob-item"><div class="k">Paid so far</div><div class="v">KES 61,000</div></div>
+        <div class="ob-item"><div class="k">Balance due</div><div class="v">KES 0</div></div>
+        <div class="ob-item"><div class="k">ETA Mombasa</div><div class="v">11 days</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCREEN 5: HOW IT WORKS ============ -->
+  <section class="screen" id="how">
+    <div class="eyebrow">The mechanics</div>
+    <h1 class="page-title">One container, many small importers</h1>
+    <p class="page-sub">Kontena is a digital version of what freight forwarders call LCL consolidation — "less than container load" — except every backer can see the manifest fill up, pay by M-Pesa, and track it themselves.</p>
+
+    <div class="flow-grid">
+      <div class="flow-cell"><div class="num">01</div><h4>An agent opens a container</h4><p>A vetted sourcing agent lists a route, closing date, and 12–20 CBM of capacity.</p></div>
+      <div class="flow-cell"><div class="num">02</div><h4>Traders book space</h4><p>Individuals reserve CBM for their own goods and pay a deposit via M-Pesa into escrow.</p></div>
+      <div class="flow-cell"><div class="num">03</div><h4>Threshold reached</h4><p>If the container hits ~80% by the closing date it proceeds; if not, deposits are refunded or the date extends.</p></div>
+      <div class="flow-cell"><div class="num">04</div><h4>Sourcing &amp; QC</h4><p>The agent buys and inspects each trader's goods against photos/specs before packing.</p></div>
+      <div class="flow-cell"><div class="num">05</div><h4>Seal &amp; sail</h4><p>Container is sealed, bill of lading issued, and it sails Guangzhou/Yiwu → Mombasa (~30–35 days).</p></div>
+      <div class="flow-cell"><div class="num">06</div><h4>Customs clearance</h4><p>KRA duty, VAT, IDF and railway levy are apportioned per trader by CBM and declared value.</p></div>
+      <div class="flow-cell"><div class="num">07</div><h4>Nairobi warehouse</h4><p>Cleared goods are trucked in and sorted by booking reference for collection.</p></div>
+      <div class="flow-cell"><div class="num">08</div><h4>Balance &amp; pickup</h4><p>Traders settle the balance, then collect or arrange last-mile delivery.</p></div>
+    </div>
+  </section>
+
+</div>
+
+<script>
+  function showScreen(id){
+    document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+    document.getElementById(id).classList.add('active');
+    document.querySelectorAll('#tabnav button').forEach(b=>b.classList.toggle('active', b.dataset.screen===id));
+    window.scrollTo({top:0,behavior:'smooth'});
+  }
+  document.querySelectorAll('#tabnav button').forEach(b=>{
+    b.addEventListener('click',()=>showScreen(b.dataset.screen));
+  });
+
+  document.querySelectorAll('.chip').forEach(c=>{
+    c.addEventListener('click',()=>{
+      document.querySelectorAll('.chip').forEach(x=>x.classList.remove('active'));
+      c.classList.add('active');
+    });
+  });
+
+  document.querySelectorAll('.radio-opt').forEach(r=>{
+    r.addEventListener('click',()=>{
+      r.parentElement.querySelectorAll('.radio-opt').forEach(x=>x.classList.remove('sel'));
+      r.classList.add('sel');
+    });
+  });
+
+  function goStep(n){
+    document.querySelectorAll('.stepview').forEach(v=>v.style.display='none');
+    document.querySelector('.stepview[data-view="'+n+'"]').style.display='block';
+    document.querySelectorAll('.step-pill').forEach(p=>{
+      const s=parseInt(p.dataset.step);
+      p.classList.remove('active','done');
+      if(s<n) p.classList.add('done');
+      if(s===n) p.classList.add('active');
+    });
+  }
+</script>
+
+</body>
+</html>
